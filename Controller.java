@@ -1,6 +1,8 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Controller 
 {
@@ -8,23 +10,27 @@ public class Controller
 	HashMap<String, RCB> resources;
 	Parser parser;
 	ReadyList rl;
+	File output;
+	FileWriter fw;
+	BufferedWriter bw;
+	StringBuilder sb;
 	
 	Controller()
 	{
-		input = null;
+		initIO("");
+		sb = new StringBuilder();
 		parser = new Parser();
-		run();
 	}
 	
 	Controller(String input)
 	{
-		this.input = new File(input);
+		initIO(input);
+		sb = new StringBuilder();
 		parser = new Parser(this.input);
-		run();
 	}
 	
 	@SuppressWarnings("incomplete-switch")
-	private void run()
+	public void run()
 	{
 		Command current = new Command(Command.Type.INIT);
 		while(current.ct != Command.Type.QUIT)
@@ -52,21 +58,62 @@ public class Controller
 					rl.timeout();
 					break;
 				case ERROR:
-					System.out.println("Invalid input");
+					String error = "Invalid input";
+					System.out.println(error);
+					sb.append(error + "\n");
 					break;
 			}
 			current = Scheduler();
 		}
 		
-		System.out.println("process terminated");
+		String ended = "process terminated";
+		System.out.println(ended);
+		sb.append(ended);
+		
+		try
+		{
+		bw.write(sb.toString());
+		bw.close();
+		}
+		catch(IOException e)
+		{}
 		parser.close();
 	}
 	
 	private Command Scheduler()
 	{
-		String currentProcess = rl.getCurrentProcess().getPId();
-		System.out.println(currentProcess + " is running");
-		return parser.next();
+		String currentString = rl.getCurrentProcess().getPId() + " is running";
+		System.out.println(currentString);
+		sb.append(currentString + "\n");
+		return parser.next(sb);
+	}
+	
+	private void initIO(String input)
+	{
+		try
+		{
+			if(input.equals(""))
+			{
+				this.input = null;
+				output = new File("output.txt");
+				
+			}
+			else
+			{
+				this.input = new File(input);
+				output = new File(input + "-output.txt");
+			}
+			
+			if(!output.exists())
+				output.createNewFile();
+			fw = new FileWriter(output.getAbsoluteFile());
+			bw = new BufferedWriter(fw);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			System.err.println("Input file error");
+		}
 	}
 	
 	private void init()

@@ -23,13 +23,14 @@ public class Parser
 		}
 	}
 	
-	public Command next()
+	public Command next(StringBuilder sb)
 	{	
 		String line = scanner.nextLine();
 		
 		while(line.isEmpty())
 		{
 			System.out.println();
+			sb.append("\n");
 			line = scanner.nextLine();
 		}
 			

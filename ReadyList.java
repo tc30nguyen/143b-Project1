@@ -61,9 +61,4 @@ public class ReadyList
 		currentNode.data.timeout();
 		list[currentNode.data.getPriority()].timeout();
 	}
-	
-	private Level.Node getHead(Level.Node n)
-	{
-		return list[n.data.getPriority()].getHead();
-	}
 }
