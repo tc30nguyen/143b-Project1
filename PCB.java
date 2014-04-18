@@ -8,6 +8,7 @@ public class PCB
 	private Status status;
 	private PCB parent;
 	private final String pId;
+	private RCB blockedBy;
 	
 	public enum Status
 	{
@@ -22,6 +23,7 @@ public class PCB
 		status = Status.READY;
 		this.parent = null;
 		this.pId = "init";
+		blockedBy = null;
 	}
 	
 	public PCB(String pId, PCB parent, int priority)
@@ -32,6 +34,7 @@ public class PCB
 		status = Status.READY;
 		this.parent = parent;
 		this.pId = pId;
+		blockedBy = null;
 	}
 	
 	public PCB createChild(String pId, int priority)
@@ -66,30 +69,38 @@ public class PCB
 			child.delete(rl);
 		
 		for(RCB resource : resources.values())
-			resource.release();
+		{
+			PCB unBlockedProcess = resource.release();
+			if(unBlockedProcess != null)
+				rl.add(unBlockedProcess);
+		}
+		
+		if(status == Status.BLOCKED)
+			blockedBy.deleteFromBlock(this);
 		
 		rl.delete(pId);
 	}
 	
-	public boolean request(String rId, HashMap<String, RCB> resources)
+	public boolean request(RCB resource, HashMap<String, RCB> resources)
 	{
-		RCB requested = resources.get(rId);
+		RCB requested = resources.get(resource.getRId());
 		
 		if(requested == null)
 			throw new IllegalArgumentException("The RID does not exist");
 		
-		if(this.resources.containsKey(rId))
+		if(this.resources.containsKey(resource.getRId()))
 			return true;
 		
 		if(requested.allocate(this))
 		{
-			this.resources.put(rId, requested);
+			this.resources.put(resource.getRId(), requested);
 			return true;
 		}
 		
 		else
 		{
 			status = Status.BLOCKED;
+			blockedBy = resource;
 			return false;
 		}
 	}
@@ -104,23 +115,6 @@ public class PCB
 		
 		return false;
 	}
-	
-	/*public void release(String rId, HashMap<String, RCB> resources)
-	{
-		RCB toRelease = resources.get(rId);
-		
-		if(toRelease == null)
-			throw new IllegalArgumentException("The RID does not exist");
-		
-		if(this.resources.containsKey(rId))
-		{
-			this.resources.remove(rId);
-			toRelease.release();
-		}
-		else
-			System.out.println(pId + " is not holding " + toRelease.getRId());
-	}*/
-	
 	
 	//Status control-----------------------------------------------------
 	public void timeout()

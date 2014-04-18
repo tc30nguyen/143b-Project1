@@ -35,6 +35,11 @@ public class RCB
 		return nextProcess;
 	}
 	
+	public boolean deleteFromBlock(PCB p)
+	{
+		return blockedList.remove(p) ? true : false;
+	}
+	
 	//Accesssors---------------------------------------------
 	public String getRId()
 	{

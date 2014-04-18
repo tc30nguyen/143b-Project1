@@ -42,7 +42,7 @@ public class Controller
 					currentProcess.delete(current.id, rl); //HANDLE BLOCKED PROCESSES
 					break;
 				case REQUEST:
-					if(!rl.getCurrentProcess().request(current.id, resources))
+					if(!rl.getCurrentProcess().request(resources.get(current.id), resources))
 						rl.block();
 					break;
 				case RELEASE:
@@ -57,6 +57,9 @@ public class Controller
 			}
 			current = Scheduler();
 		}
+		
+		System.out.println("process terminated");
+		parser.close();
 	}
 	
 	private Command Scheduler()

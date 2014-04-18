@@ -24,14 +24,15 @@ public class Parser
 	}
 	
 	public Command next()
-	{
-		if(!scanner.hasNextLine())
-		{
-			scanner.close();
-			return null;
-		}
-		
+	{	
 		String line = scanner.nextLine();
+		
+		while(line.isEmpty())
+		{
+			System.out.println();
+			line = scanner.nextLine();
+		}
+			
 		Scanner lineScanner = new Scanner(line);
 		Command current = null;
 		
@@ -65,5 +66,10 @@ public class Parser
 		
 		lineScanner.close();
 		return current;
+	}
+	
+	public void close()
+	{
+		scanner.close();
 	}
 }
