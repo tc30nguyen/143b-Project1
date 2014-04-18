@@ -25,14 +25,14 @@ public class RCB
 		return true;
 	}
 	
-	public void release()
+	public PCB release()
 	{
 		PCB nextProcess = blockedList.poll();
 		
 		if(nextProcess == null)
 			allocated = false;
-		else
-			nextProcess.unBlock();
+		
+		return nextProcess;
 	}
 	
 	//Accesssors---------------------------------------------

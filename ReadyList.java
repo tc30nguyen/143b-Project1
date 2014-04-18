@@ -1,3 +1,9 @@
+//TO CHANGE--------------------------------------------------------------
+//change structure, queue for levels
+//on timeout, move current to end of queue
+//on block/delete, remove from queue
+
+
 public class ReadyList 
 {
 	private final int NUM_OF_PRIORITIES = 3;
@@ -15,11 +21,56 @@ public class ReadyList
 		currentNode = list[0].getHead();
 	}
 	
+	public void add(PCB p)
+	{
+		list[p.getPriority()].add(p);
+	}
+	
 	public void add(String pId, int priority)
 	{
 		PCB newProcess = currentNode.data.createChild(pId, priority);
 		list[priority].add(newProcess);
-		getCurrentProcess(false);
+	}
+	
+	public void delete(String pId)
+	{
+		for(Level level : list)
+		{
+			if(level.delete(pId))
+				return;
+		}
+	}
+	
+	public PCB getCurrentProcess()
+	{
+		for(int i = NUM_OF_PRIORITIES - 1; i >= 0; i--)
+		{
+			Level.Node current = list[i].getHead();
+			if(current != null)
+			{
+				currentNode = current;
+				currentNode.data.run();
+				return currentNode.data;
+			}
+		}
+		
+		throw new IllegalStateException();
+	}
+	
+	public void block()
+	{
+		list[currentNode.data.getPriority()].removeHead();
+	}
+	
+	public void timeout()
+	{
+		currentNode.data.timeout();
+		list[currentNode.data.getPriority()].timeout();
+	}
+	
+	/*public PCB getCurrentProcess()
+	{
+		return getCurrentProcess(false);
 	}
 	
 	public PCB getCurrentProcess(boolean isTimeout)
@@ -59,17 +110,16 @@ public class ReadyList
 
 		do
 		{
-			//if current is at end of level, loop back to head
-			if(current == null)
-				current = getHead(currentNode);
-			
 			if(currentNode.data.run())
 			{
 				currentNode = current;
 				return true;
 			}
-			
 			current = current.next;
+			
+			//if current is at end of level, loop back to head
+			if(current == null)
+				current = getHead(currentNode);
 		}
 		//loop ends after iterating around back to the previous currentNode
 		while(current != previousCurrent);
@@ -92,12 +142,7 @@ public class ReadyList
 		}
 		
 		return false;
-	}
-	
-	public PCB getCurrentProcess()
-	{
-		return currentNode.data;
-	}
+	}*/
 	
 	private Level.Node getHead(Level.Node n)
 	{

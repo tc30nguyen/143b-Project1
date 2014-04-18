@@ -44,7 +44,7 @@ public class Level
 		if(head == null)
 			return false;
 		
-		if(head.data.getPId() == pId)
+		if(head.data.getPId().equals(pId))
 		{
 			head = head.next;
 			return true;
@@ -58,7 +58,7 @@ public class Level
 			prev = current;
 			current = current.next;
 			
-			if(current.data.getPId() == pId)
+			if(current.data.getPId().equals(pId))
 			{
 				prev.next = current.next;
 				return true;
@@ -68,8 +68,24 @@ public class Level
 		return false;
 	}
 	
+	public void timeout()
+	{
+		if(head == null)
+			return;
+		
+		Node oldHead = head;
+		head = head.next;
+		add(oldHead.data);
+	}
+	
 	public Node getHead()
 	{
 		return head;
+	}
+	
+	public void removeHead()
+	{
+		if(head != null)
+			head = head.next;
 	}
 }

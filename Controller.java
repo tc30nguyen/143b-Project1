@@ -23,6 +23,7 @@ public class Controller
 		run();
 	}
 	
+	@SuppressWarnings("incomplete-switch")
 	private void run()
 	{
 		Command current = new Command(Command.Type.INIT);
@@ -34,28 +35,35 @@ public class Controller
 					init();
 					break;
 				case CREATE:
-					create(current.id, current.priority);
+					rl.add(current.id, current.priority);
 					break;
 				case DESTROY:
-					destroy(current.id);
+					PCB currentProcess = rl.getCurrentProcess();
+					currentProcess.delete(current.id, rl); //HANDLE BLOCKED PROCESSES
 					break;
 				case REQUEST:
-					request(current.id);
+					if(!rl.getCurrentProcess().request(current.id, resources))
+						rl.block();
 					break;
 				case RELEASE:
 					release(current.id);
 					break;
 				case TIMEOUT:
-					timeout();
+					rl.timeout();
 					break;
 				case ERROR:
 					System.out.println("Invalid input");
 					break;
 			}
-			
-			System.out.println(rl.getCurrentProcess().getPId() + " is running");
-			current = parser.next();
+			current = Scheduler();
 		}
+	}
+	
+	private Command Scheduler()
+	{
+		String currentProcess = rl.getCurrentProcess().getPId();
+		System.out.println(currentProcess + " is running");
+		return parser.next();
 	}
 	
 	private void init()
@@ -69,28 +77,18 @@ public class Controller
 		resources.put("R4", new RCB("R4"));
 	}
 	
-	private void create(String pId, int priority)
-	{
-		rl.add(pId, priority);
-	}
-	
-	private void destroy(String pId)
-	{
-		
-	}
-	
-	private void request(String rId)
-	{
-		rl.getCurrentProcess().request(rId, resources);
-	}
-	
 	private void release(String rId)
 	{
-		rl.getCurrentProcess().release(rId, resources);
-	}
-	
-	private void timeout()
-	{
-		rl.getCurrentProcess(true);
+		RCB toRelease = resources.get(rId);
+		if(rl.getCurrentProcess().release(rId))
+		{
+			//give newly released resource to the next process in its blocked list
+			PCB releasedProcess = toRelease.release();
+			if(releasedProcess != null)
+			{
+				releasedProcess.unBlock(toRelease);
+				rl.add(releasedProcess);
+			}
+		}
 	}
 }

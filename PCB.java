@@ -16,7 +16,7 @@ public class PCB
 	
 	public PCB()
 	{
-		resources = null;
+		resources = new HashMap<>();
 		children = new HashMap<>();
 		priority = 0;
 		status = Status.READY;
@@ -41,12 +41,45 @@ public class PCB
 		return child;
 	}
 	
+	public boolean delete(String pId, ReadyList rl)
+	{
+		if(this.pId.equals(pId))
+		{
+			delete(rl);
+			return true;
+		}
+		else
+		{
+			for(PCB child : children.values())
+			{
+				if(child.delete(pId, rl))
+					return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public void delete(ReadyList rl)
+	{
+		for(PCB child : children.values())
+			child.delete(rl);
+		
+		for(RCB resource : resources.values())
+			resource.release();
+		
+		rl.delete(pId);
+	}
+	
 	public boolean request(String rId, HashMap<String, RCB> resources)
 	{
 		RCB requested = resources.get(rId);
 		
 		if(requested == null)
 			throw new IllegalArgumentException("The RID does not exist");
+		
+		if(this.resources.containsKey(rId))
+			return true;
 		
 		if(requested.allocate(this))
 		{
@@ -61,16 +94,32 @@ public class PCB
 		}
 	}
 	
-	public void release(String rId, HashMap<String, RCB> resources)
+	public boolean release(String rId)
+	{
+		if(resources.containsKey(rId))
+		{
+			resources.remove(rId);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/*public void release(String rId, HashMap<String, RCB> resources)
 	{
 		RCB toRelease = resources.get(rId);
 		
 		if(toRelease == null)
 			throw new IllegalArgumentException("The RID does not exist");
 		
-		this.resources.remove(rId);
-		toRelease.release();
-	}
+		if(this.resources.containsKey(rId))
+		{
+			this.resources.remove(rId);
+			toRelease.release();
+		}
+		else
+			System.out.println(pId + " is not holding " + toRelease.getRId());
+	}*/
 	
 	
 	//Status control-----------------------------------------------------
@@ -90,10 +139,13 @@ public class PCB
 		return false;
 	}
 	
-	public void unBlock()
+	public void unBlock(RCB resource)
 	{
 		if(status == Status.BLOCKED)
+		{
+			resources.put(resource.getRId(), resource);
 			status = Status.READY;
+		}
 	}
 	
 	//Accessors----------------------------------------------------------
