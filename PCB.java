@@ -8,13 +8,14 @@ public class PCB
 	private Status status;
 	private PCB parent;
 	private final String pId;
-	private RCB blockedBy;
+	private RCB blockedBy; //pointer to the resource this process is currently waiting on
 	
 	public enum Status
 	{
 		READY, BLOCKED, RUNNING;
 	}
 	
+	//init constructor
 	public PCB()
 	{
 		resources = new HashMap<>();
@@ -44,6 +45,7 @@ public class PCB
 		return child;
 	}
 	
+	//find process to delete(current process or children), and delete the process and its children 
 	public boolean delete(String pId, ReadyList rl)
 	{
 		if(this.pId.equals(pId))
@@ -63,6 +65,7 @@ public class PCB
 		return false;
 	}
 	
+	//free all held resources and delete the process and its children
 	public void delete(ReadyList rl)
 	{
 		for(PCB child : children.values())
@@ -81,6 +84,7 @@ public class PCB
 		rl.delete(pId);
 	}
 	
+	//requests a resource, becomes blocked if the resource is already allocated
 	public boolean request(RCB resource, HashMap<String, RCB> resources)
 	{
 		RCB requested = resources.get(resource.getRId());
@@ -88,15 +92,18 @@ public class PCB
 		if(requested == null)
 			throw new IllegalArgumentException("The RID does not exist");
 		
+		//current process is already holding the requested resource
 		if(this.resources.containsKey(resource.getRId()))
 			return true;
 		
+		//resource successfully taken
 		if(requested.allocate(this))
 		{
 			this.resources.put(resource.getRId(), requested);
 			return true;
 		}
 		
+		//resource is being held by another process. current process is blocked
 		else
 		{
 			status = Status.BLOCKED;
@@ -105,6 +112,7 @@ public class PCB
 		}
 	}
 	
+	//releases the specified resource
 	public boolean release(String rId)
 	{
 		if(resources.containsKey(rId))

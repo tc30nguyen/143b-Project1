@@ -1,6 +1,6 @@
 public class Command 
 {
-	Type ct;
+	Type type;
 	String id;
 	int priority;
 	
@@ -12,20 +12,20 @@ public class Command
 	//init, quit, timeout, error
 	Command(Type ct)
 	{
-		this.ct = ct;
+		this.type = ct;
 	}
 	
 	//destroy, request, release
 	Command(Type ct, String id)
 	{
-		this.ct = ct;
+		this.type = ct;
 		this.id = id;
 	}
 	
-	//create command
+	//create
 	Command(String id, int priority)
 	{
-		ct = Type.CREATE;
+		type = Type.CREATE;
 		this.id = id;
 		this.priority = priority;
 	}

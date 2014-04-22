@@ -15,6 +15,7 @@ public class Controller
 	BufferedWriter bw;
 	StringBuilder sb;
 	
+	//takes input from console
 	Controller()
 	{
 		initIO("");
@@ -22,6 +23,7 @@ public class Controller
 		parser = new Parser();
 	}
 	
+	//takes input from an input file
 	Controller(String input)
 	{
 		initIO(input);
@@ -29,65 +31,7 @@ public class Controller
 		parser = new Parser(this.input);
 	}
 	
-	@SuppressWarnings("incomplete-switch")
-	public void run()
-	{
-		Command current = new Command(Command.Type.INIT);
-		while(current.ct != Command.Type.QUIT)
-		{
-			switch(current.ct)
-			{
-				case INIT:
-					init();
-					break;
-				case CREATE:
-					rl.add(current.id, current.priority);
-					break;
-				case DESTROY:
-					PCB currentProcess = rl.getCurrentProcess();
-					currentProcess.delete(current.id, rl); //HANDLE BLOCKED PROCESSES
-					break;
-				case REQUEST:
-					if(!rl.getCurrentProcess().request(resources.get(current.id), resources))
-						rl.block();
-					break;
-				case RELEASE:
-					release(current.id);
-					break;
-				case TIMEOUT:
-					rl.timeout();
-					break;
-				case ERROR:
-					String error = "Invalid input";
-					System.out.println(error);
-					sb.append(error + "\n");
-					break;
-			}
-			current = Scheduler();
-		}
-		
-		String ended = "process terminated";
-		System.out.println(ended);
-		sb.append(ended);
-		
-		try
-		{
-		bw.write(sb.toString());
-		bw.close();
-		}
-		catch(IOException e)
-		{}
-		parser.close();
-	}
-	
-	private Command Scheduler()
-	{
-		String currentString = rl.getCurrentProcess().getPId() + " is running";
-		System.out.println(currentString);
-		sb.append(currentString + "\n");
-		return parser.next(sb);
-	}
-	
+	//initializes output file
 	private void initIO(String input)
 	{
 		try
@@ -116,6 +60,68 @@ public class Controller
 		}
 	}
 	
+	//runs input commands until QUIT or multiple empty lines
+	@SuppressWarnings("incomplete-switch")
+	public void run()
+	{
+		Command current = new Command(Command.Type.INIT);
+		while(current.type != Command.Type.QUIT)
+		{
+			switch(current.type)
+			{
+				case INIT:
+					init();
+					break;
+				case CREATE:
+					rl.add(current.id, current.priority);
+					break;
+				case DESTROY:
+					PCB currentProcess = rl.getCurrentProcess();
+					currentProcess.delete(current.id, rl);
+					break;
+				case REQUEST:
+					if(!rl.getCurrentProcess().request(resources.get(current.id), resources))
+						rl.block();
+					break;
+				case RELEASE:
+					release(current.id);
+					break;
+				case TIMEOUT:
+					rl.timeout();
+					break;
+				case ERROR:
+					String error = "Invalid input";
+					System.out.println(error);
+					sb.append(error + "\n");
+					break;
+			}
+			current = Scheduler();
+		}
+		
+		String ended = "process terminated";
+		System.out.println(ended);
+		sb.append(ended);
+		
+		//write to output file
+		try
+		{
+			bw.write(sb.toString());
+			bw.close();
+			parser.close();
+		}
+		catch(IOException e){}
+	}
+	
+	//prints the current running process
+	private Command Scheduler()
+	{
+		String currentString = rl.getCurrentProcess().getPId() + " is running";
+		System.out.println(currentString);
+		sb.append(currentString + "\n");
+		return parser.next(sb);
+	}
+	
+	//reset state
 	private void init()
 	{
 		rl = new ReadyList();
@@ -127,6 +133,7 @@ public class Controller
 		resources.put("R4", new RCB("R4"));
 	}
 	
+	//current process releases the specified resource, unblocking the next waiting process, if any
 	private void release(String rId)
 	{
 		RCB toRelease = resources.get(rId);

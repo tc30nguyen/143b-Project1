@@ -4,6 +4,7 @@ public class ReadyList
 	private Level[] list;
 	private Level.Node currentNode;
 	
+	//initialize ready list, making a queue for each priority level
 	public ReadyList()
 	{
 		list = new Level[NUM_OF_PRIORITIES];
@@ -11,8 +12,8 @@ public class ReadyList
 			list[i] = new Level();
 		
 		PCB init = new PCB();
-		list[0].add(init);
-		currentNode = list[0].getHead();
+		list[init.getPriority()].add(init);
+		currentNode = list[init.getPriority()].getHead();
 	}
 	
 	public void add(PCB p)
@@ -35,6 +36,7 @@ public class ReadyList
 		}
 	}
 	
+	//iterates through the priority levels, taking the highest priority process found
 	public PCB getCurrentProcess()
 	{
 		for(int i = NUM_OF_PRIORITIES - 1; i >= 0; i--)
@@ -56,6 +58,7 @@ public class ReadyList
 		list[currentNode.data.getPriority()].removeHead();
 	}
 	
+	//moves the currently running process to the back of its queue
 	public void timeout()
 	{
 		currentNode.data.timeout();

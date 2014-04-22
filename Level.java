@@ -1,4 +1,4 @@
-
+//queue for each priority level in the ready list
 public class Level 
 {	
 	public class Node

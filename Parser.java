@@ -6,11 +6,13 @@ public class Parser
 {
 	Scanner scanner;
 	
+	//takes input from the console
 	Parser()
 	{
 		scanner = new Scanner(System.in);
 	}
 	
+	//takes input from a file
 	Parser(File input)
 	{
 		try
@@ -25,18 +27,31 @@ public class Parser
 	
 	public Command next(StringBuilder sb)
 	{	
-		String line = scanner.nextLine();
+		boolean counter = false;
+		String line = "";
 		
+		//gets the next line from input. accounts for an empty line
+		if(scanner.hasNextLine())
+			line = scanner.nextLine();
 		while(line.isEmpty())
 		{
-			System.out.println();
 			sb.append("\n");
-			line = scanner.nextLine();
+			if(!scanner.hasNextLine())
+			{
+				if(counter)
+					return new Command(Command.Type.QUIT);
+				else
+					counter = true;
+			}
+			else
+				line = scanner.nextLine();
+			System.out.println();
 		}
-			
+		
 		Scanner lineScanner = new Scanner(line);
 		Command current = null;
 		
+		//parses the current input line
 		switch(lineScanner.next())
 		{
 		case "init":
@@ -45,7 +60,6 @@ public class Parser
 		case "quit":
 			current = new Command(Command.Type.QUIT);
 			break;
-		//catch bad input
 		case "cr":
 			current = new Command(lineScanner.next(), lineScanner.nextInt());
 			break;
